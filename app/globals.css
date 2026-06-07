@@ -622,6 +622,116 @@ pre.output {
   }
 }
 
+/* Preset chips ------------------------------------------------------------ */
+
+.chip {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-default);
+  background: var(--canvas-default);
+  color: var(--fg-default);
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: var(--canvas-subtle);
+  border-color: var(--accent-fg);
+}
+
+.chip-active {
+  background: var(--accent-subtle);
+  border-color: var(--accent-fg);
+  color: var(--accent-fg);
+}
+
+/* Risk heatmap ------------------------------------------------------------ */
+
+.heatmap {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.heat-cell {
+  border-radius: 6px;
+  padding: 14px;
+  border: 1px solid var(--border-default);
+  color: #ffffff;
+}
+
+.heat-dim {
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.heat-flag {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.heat-score {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-top: 6px;
+}
+
+.heat-risk {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.92;
+}
+
+.heat-low {
+  background: #1f883d;
+}
+.heat-medium {
+  background: #bf8700;
+}
+.heat-high {
+  background: #d1242f;
+}
+.heat-critical {
+  background: #82071e;
+}
+
+/* Print / Save as PDF ----------------------------------------------------- */
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+  .app-header,
+  .app-footer,
+  .no-print {
+    display: none !important;
+  }
+  .container {
+    padding: 0;
+    max-width: 100%;
+  }
+  .card {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+  .heat-cell {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 /* Footer ------------------------------------------------------------------ */
 
 .app-footer {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { calculateReadiness } from "@/lib/readiness";
+import { buildHeatmap } from "@/lib/heatmap";
 import { generateReadinessAdvisory, isAIConfigured } from "@/lib/ai";
 
 export const runtime = "nodejs";
@@ -42,11 +43,13 @@ export async function POST(req: NextRequest) {
   }
 
   const result = calculateReadiness(parsed.data);
+  const heatmap = buildHeatmap(parsed.data);
   const advisory = await generateReadinessAdvisory(parsed.data, result);
 
   return NextResponse.json({
     aiConfigured: isAIConfigured(),
     result,
+    heatmap,
     advisory
   });
 }

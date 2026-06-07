@@ -6,31 +6,14 @@ import type {
   MigrationValidationIssue,
   MigrationRemediation
 } from "@/lib/types";
-
-const sampleRecords = [
-  {
-    sourceSystem: "LegacyPAS",
-    entityType: "Policy",
-    externalId: "POL-55012",
-    payload: { policyNumber: "POL-55012", effectiveDate: "2026-01-01" }
-  },
-  {
-    sourceSystem: "LegacyClaims",
-    entityType: "Claim",
-    externalId: "CLM-100245",
-    payload: { lossDate: "2026-04-01" }
-  },
-  {
-    sourceSystem: "CRM",
-    entityType: "Contact",
-    externalId: "",
-    payload: { email: "broken-email.example.com" }
-  }
-];
+import { migrationPresets } from "@/lib/samples";
 
 export default function DataMigrationPage() {
   const [recordsText, setRecordsText] = useState(
-    JSON.stringify(sampleRecords, null, 2)
+    JSON.stringify(migrationPresets[1].records, null, 2)
+  );
+  const [activePreset, setActivePreset] = useState<string>(
+    migrationPresets[1].id
   );
   const [issues, setIssues] = useState<MigrationValidationIssue[] | null>(null);
   const [remediation, setRemediation] = useState<MigrationRemediation | null>(
@@ -38,6 +21,15 @@ export default function DataMigrationPage() {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function loadPreset(id: string) {
+    const preset = migrationPresets.find(p => p.id === id);
+    if (!preset) return;
+    setRecordsText(JSON.stringify(preset.records, null, 2));
+    setActivePreset(id);
+    setIssues(null);
+    setRemediation(null);
+  }
 
   async function validate() {
     setLoading(true);
@@ -84,11 +76,29 @@ export default function DataMigrationPage() {
           Supported entity types: Account, Policy, Claim, Exposure, Contact,
           BillingAccount. Edit the JSON to test different scenarios.
         </p>
+        <div className="field" style={{ marginBottom: 12 }}>
+          <label>Load a sample dataset</label>
+          <div className="btn-row" style={{ marginTop: 4 }}>
+            {migrationPresets.map(p => (
+              <button
+                key={p.id}
+                className={`chip ${activePreset === p.id ? "chip-active" : ""}`}
+                title={p.description}
+                onClick={() => loadPreset(p.id)}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="field">
           <textarea
             rows={16}
             value={recordsText}
-            onChange={e => setRecordsText(e.target.value)}
+            onChange={e => {
+              setRecordsText(e.target.value);
+              setActivePreset("");
+            }}
           />
         </div>
         <div className="btn-row">

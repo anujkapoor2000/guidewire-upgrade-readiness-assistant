@@ -6,28 +6,11 @@ import type {
   ReadinessInput,
   ReadinessResult,
   ReadinessAdvisory,
-  IntegrationInventoryItem
+  IntegrationInventoryItem,
+  HeatmapCell
 } from "@/lib/types";
-
-const defaultInput: ReadinessInput = {
-  currentVersion: "InsuranceSuite 10",
-  targetVersion: "Guidewire Cloud",
-  applications: ["PolicyCenter", "ClaimCenter", "BillingCenter"],
-  customGosuClasses: 420,
-  customEntities: 12,
-  customTypelists: 34,
-  customPcfFiles: 260,
-  batchProcesses: 18,
-  regressionCoveragePercent: 62,
-  apiTestCoveragePercent: 48,
-  dataQualityScorePercent: 79,
-  knownUpgradeBlockers: 2,
-  integrations: [
-    { name: "Fraud Scoring", type: "REST", criticality: "HIGH", hasContractTest: false, hasMock: true },
-    { name: "Document Generation", type: "REST", criticality: "HIGH", hasContractTest: true, hasMock: false },
-    { name: "Data Warehouse Extract", type: "FILE", criticality: "MEDIUM", hasContractTest: false, hasMock: false }
-  ]
-};
+import { readinessPresets } from "@/lib/samples";
+import { buildSteeringPackMarkdown } from "@/lib/report";
 
 const numericFields: { key: keyof ReadinessInput; label: string; hint?: string }[] = [
   { key: "customGosuClasses", label: "Custom Gosu classes" },
@@ -48,14 +31,27 @@ function scoreClass(score: number) {
 }
 
 export default function UpgradeReadinessPage() {
-  const [input, setInput] = useState<ReadinessInput>(defaultInput);
+  const [input, setInput] = useState<ReadinessInput>(readinessPresets[1].input);
+  const [activePreset, setActivePreset] = useState<string>(readinessPresets[1].id);
   const [result, setResult] = useState<ReadinessResult | null>(null);
+  const [heatmap, setHeatmap] = useState<HeatmapCell[] | null>(null);
   const [advisory, setAdvisory] = useState<ReadinessAdvisory | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function loadPreset(id: string) {
+    const preset = readinessPresets.find(p => p.id === id);
+    if (!preset) return;
+    setInput(structuredClone(preset.input));
+    setActivePreset(id);
+    setResult(null);
+    setHeatmap(null);
+    setAdvisory(null);
+  }
+
   function updateNumber(key: keyof ReadinessInput, value: string) {
     setInput(prev => ({ ...prev, [key]: Number(value) || 0 }));
+    setActivePreset("");
   }
 
   function updateIntegration(
@@ -69,6 +65,7 @@ export default function UpgradeReadinessPage() {
       );
       return { ...prev, integrations };
     });
+    setActivePreset("");
   }
 
   async function runAssessment() {
@@ -83,6 +80,7 @@ export default function UpgradeReadinessPage() {
       if (!res.ok) throw new Error(`Request failed (${res.status})`);
       const data = await res.json();
       setResult(data.result);
+      setHeatmap(data.heatmap);
       setAdvisory(data.advisory);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -91,9 +89,21 @@ export default function UpgradeReadinessPage() {
     }
   }
 
+  function downloadSteeringPack() {
+    if (!result || !advisory || !heatmap) return;
+    const md = buildSteeringPackMarkdown(input, result, advisory, heatmap);
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "guidewire-upgrade-steering-pack.md";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <main className="container">
-      <div className="breadcrumb">
+      <div className="breadcrumb no-print">
         <Link href="/">Home</Link> / Upgrade Readiness Scoring
       </div>
       <div className="page-head">
@@ -105,8 +115,25 @@ export default function UpgradeReadinessPage() {
         </p>
       </div>
 
-      <section className="card">
+      <section className="card no-print">
         <h2>Programme inputs</h2>
+
+        <div className="field" style={{ marginBottom: 14 }}>
+          <label>Load a sample scenario</label>
+          <div className="btn-row" style={{ marginTop: 4 }}>
+            {readinessPresets.map(p => (
+              <button
+                key={p.id}
+                className={`chip ${activePreset === p.id ? "chip-active" : ""}`}
+                title={p.description}
+                onClick={() => loadPreset(p.id)}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="form-grid">
           <div className="field">
             <label>Current version</label>
@@ -249,6 +276,33 @@ export default function UpgradeReadinessPage() {
         </section>
       ) : null}
 
+      {heatmap ? (
+        <section className="card">
+          <h2>Risk heatmap</h2>
+          <p className="muted" style={{ marginTop: 0 }}>
+            Risk across the six upgrade dimensions. Higher health = lower risk.
+            Dimensions marked <em>heuristic</em> are estimated from available
+            inputs in this prototype.
+          </p>
+          <div className="heatmap">
+            {heatmap.map(cell => (
+              <div
+                key={cell.dimension}
+                className={`heat-cell heat-${cell.risk.toLowerCase()}`}
+                title={cell.note}
+              >
+                <div className="heat-dim">
+                  {cell.dimension}
+                  {cell.heuristic ? <span className="heat-flag">heuristic</span> : null}
+                </div>
+                <div className="heat-score">{cell.score}</div>
+                <div className="heat-risk">{cell.risk}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {advisory ? (
         <section className="card">
           <h2>
@@ -261,7 +315,7 @@ export default function UpgradeReadinessPage() {
           </h2>
 
           {!advisory.aiGenerated ? (
-            <div className="banner banner-info">
+            <div className="banner banner-info no-print">
               Set <code>ANTHROPIC_API_KEY</code> to generate a full AI advisory.
               Showing a deterministic summary built from the rule-based findings.
             </div>
@@ -356,6 +410,15 @@ export default function UpgradeReadinessPage() {
               </div>
             </>
           ) : null}
+
+          <div className="btn-row no-print" style={{ marginTop: 16 }}>
+            <button className="btn btn-accent" onClick={downloadSteeringPack}>
+              ⬇ Download steering pack (.md)
+            </button>
+            <button className="btn" onClick={() => window.print()}>
+              🖨 Print / Save as PDF
+            </button>
+          </div>
         </section>
       ) : null}
     </main>

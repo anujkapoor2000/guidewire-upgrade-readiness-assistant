@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { contractExamples } from "@/lib/samples";
 
 const vendorSamples: Record<string, unknown> = {
   fraud: {
@@ -83,6 +84,13 @@ export default function VendorMocksPage() {
   function onContractChange(c: string) {
     setContractName(c);
     setContractPayload(JSON.stringify(contractSamples[c] ?? {}, null, 2));
+    setContractResult(null);
+  }
+
+  function loadContractExample(kind: "valid" | "invalid") {
+    const example = contractExamples[contractName];
+    if (!example) return;
+    setContractPayload(JSON.stringify(example[kind], null, 2));
     setContractResult(null);
   }
 
@@ -222,7 +230,27 @@ export default function VendorMocksPage() {
           </div>
         </div>
         <div className="field" style={{ marginTop: 12 }}>
-          <label>Payload</label>
+          <label>
+            Payload
+            <span className="hint">
+              {" "}
+              — load an example: {contractExamples[contractName]?.invalidNote}
+            </span>
+          </label>
+          <div className="btn-row" style={{ marginBottom: 6 }}>
+            <button
+              className="chip"
+              onClick={() => loadContractExample("valid")}
+            >
+              Valid example
+            </button>
+            <button
+              className="chip"
+              onClick={() => loadContractExample("invalid")}
+            >
+              Invalid example
+            </button>
+          </div>
           <textarea
             rows={8}
             value={contractPayload}

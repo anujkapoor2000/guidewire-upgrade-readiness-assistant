@@ -68,6 +68,21 @@ Then open http://localhost:3000.
 - `/vendor-mocks` — call vendor mocks (fraud, document, payment, address) with happy-path and failure scenarios, and run JSON Schema contract tests
 - `/data-migration` — validate candidate migration records and generate an AI remediation plan with reconciliation checks
 
+### Sample scenarios, risk heatmap & steering pack export
+
+- **One-click sample scenarios** — each tool ships presets so it is self-demonstrating:
+  readiness profiles (*Cloud-ready*, *Typical*, *Heavy customisation*), migration
+  datasets (*Clean*, *Common defects*, *Critical blockers*), and valid/invalid
+  contract-test payloads.
+- **Risk heatmap** — a colour-coded grid across the six upgrade dimensions
+  (custom code, data, integration, testing, security, environments). The first four
+  are derived directly from inputs; security and environments are flagged heuristic
+  estimates in this prototype (`lib/heatmap.ts`).
+- **Steering pack export** — from a completed readiness assessment, download a
+  Markdown steering pack (`lib/report.ts`) or use *Print / Save as PDF* (a print
+  stylesheet hides the inputs and chrome so the score, heatmap, and advisory print
+  cleanly).
+
 ### AI features
 
 The AI features are powered by Claude through the official `@anthropic-ai/sdk`

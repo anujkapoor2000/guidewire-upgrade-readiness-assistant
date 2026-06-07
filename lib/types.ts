@@ -103,3 +103,21 @@ export type MigrationRemediation = {
   prioritizedFixes: MigrationFix[];
   reconciliationChecks: string[];
 };
+
+// Risk heatmap -------------------------------------------------------------
+
+export type HeatmapDimension =
+  | "Custom code"
+  | "Data"
+  | "Integration"
+  | "Testing"
+  | "Security"
+  | "Environments";
+
+export type HeatmapCell = {
+  dimension: HeatmapDimension;
+  score: number; // 0-100, higher = healthier
+  risk: RiskLevel;
+  note: string;
+  heuristic: boolean;
+};
