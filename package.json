@@ -9,6 +9,7 @@
     "test:contracts": "node scripts/run-contract-tests.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.0",
     "ajv": "^8.17.1",
     "next": "^15.0.0",
     "react": "^19.0.0",

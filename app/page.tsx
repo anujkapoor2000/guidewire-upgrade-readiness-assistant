@@ -1,119 +1,72 @@
-// app/page.tsx
-
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
 
-const sampleInput = {
-  currentVersion: "InsuranceSuite 10",
-  targetVersion: "Guidewire Cloud",
-  applications: ["PolicyCenter", "ClaimCenter", "BillingCenter"],
-  customGosuClasses: 420,
-  customEntities: 12,
-  customTypelists: 34,
-  customPcfFiles: 260,
-  batchProcesses: 18,
-  regressionCoveragePercent: 62,
-  apiTestCoveragePercent: 48,
-  dataQualityScorePercent: 79,
-  knownUpgradeBlockers: 2,
-  integrations: [
-    {
-      name: "Fraud Scoring",
-      type: "REST",
-      criticality: "HIGH",
-      hasContractTest: false,
-      hasMock: true
-    },
-    {
-      name: "Document Generation",
-      type: "REST",
-      criticality: "HIGH",
-      hasContractTest: true,
-      hasMock: false
-    },
-    {
-      name: "Data Warehouse Extract",
-      type: "FILE",
-      criticality: "MEDIUM",
-      hasContractTest: false,
-      hasMock: false
-    }
-  ]
-};
+const features = [
+  {
+    href: "/upgrade-readiness",
+    icon: "📊",
+    title: "Upgrade Readiness Scoring",
+    description:
+      "Score upgrade risk across custom code, integrations, testing, and data — then generate an AI go/no-go advisory with a remediation backlog and sprint plan."
+  },
+  {
+    href: "/vendor-mocks",
+    icon: "🔌",
+    title: "Vendor Mocks & Contract Tests",
+    description:
+      "Simulate vendor endpoints (fraud, document, payment, address) with happy-path and failure scenarios, and validate integration payloads against agreed contracts."
+  },
+  {
+    href: "/data-migration",
+    icon: "🗄️",
+    title: "Data Migration Assist",
+    description:
+      "Validate source-to-target migration records for Guidewire entities and produce an AI remediation plan with reconciliation and balancing checks."
+  }
+];
 
 export default function HomePage() {
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function runAssessment() {
-    setLoading(true);
-
-    const response = await fetch("/api/readiness/score", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(sampleInput)
-    });
-
-    const data = await response.json();
-
-    setResult(data);
-    setLoading(false);
-  }
-
   return (
     <main className="container">
       <section className="hero">
         <h1>Guidewire Upgrade Readiness Assistant</h1>
         <p>
-          Assess upgrade risk across custom code, integrations, testing, and data migration.
+          Assess InsuranceSuite upgrade and cloud-migration risk before
+          committing to a delivery plan. Combine deterministic scoring with
+          AI-generated steering recommendations.
         </p>
-
-        <nav className="navLinks">
-          <Link href="/upgrade-readiness">Upgrade Readiness Scoring</Link>
-          <Link href="/vendor-mocks">Vendor Mocks and Contract Tests</Link>
-          <Link href="/data-migration">Data Migration Assist</Link>
-        </nav>
-
-        <button onClick={runAssessment} disabled={loading}>
-          {loading ? "Assessing..." : "Run sample readiness assessment"}
-        </button>
+        <div className="btn-row">
+          <Link href="/upgrade-readiness" className="btn btn-primary">
+            Run a readiness assessment
+          </Link>
+          <Link href="/vendor-mocks" className="btn">
+            Explore vendor mocks
+          </Link>
+        </div>
       </section>
 
-      {result && (
-        <section className="card">
-          <h2>Readiness score: {result.readinessScore}</h2>
-          <p>
-            <strong>Risk level:</strong> {result.riskLevel}
-          </p>
+      <div className="grid">
+        {features.map(f => (
+          <Link key={f.href} href={f.href} className="feature-card">
+            <div className="icon">{f.icon}</div>
+            <h3>{f.title}</h3>
+            <p>{f.description}</p>
+          </Link>
+        ))}
+      </div>
 
-          <h3>Findings</h3>
-          <div className="grid">
-            {result.findings.map((finding: any, index: number) => (
-              <div className="finding" key={index}>
-                <h4>{finding.area}</h4>
-                <p>
-                  <strong>Risk:</strong> {finding.risk}
-                </p>
-                <p>{finding.message}</p>
-                <p>
-                  <strong>Recommendation:</strong> {finding.recommendation}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <h3>Recommended next actions</h3>
-          <ol>
-            {result.recommendedNextActions.map((action: string, index: number) => (
-              <li key={index}>{action}</li>
-            ))}
-          </ol>
-        </section>
-      )}
+      <section className="card" style={{ marginTop: 24 }}>
+        <h2>How it works</h2>
+        <p className="muted">
+          A rule engine computes a 0–100 readiness index and risk findings from
+          your customisation footprint, integration inventory, test coverage,
+          and data quality. Claude then turns that evidence into an executive
+          summary, a go/no-go recommendation, a prioritised remediation backlog,
+          and a suggested upgrade sprint plan. Set the{" "}
+          <code>ANTHROPIC_API_KEY</code> environment variable to enable the AI
+          features — without it, the app falls back to deterministic summaries so
+          every screen still works.
+        </p>
+      </section>
     </main>
   );
 }

@@ -49,3 +49,38 @@ Migration validation	Add source to target reconciliation, business balancing, du
 CI/CD	Add GitHub Actions, quality gates, and automatic readiness scoring per build
 Security	Add SSO, role based access, audit logs, and environment separation
 Reporting	Generate steering committee upgrade readiness packs
+
+---
+
+## Running the app
+
+```bash
+npm install
+npm run dev
+```
+
+Then open http://localhost:3000.
+
+### Pages
+
+- `/` — landing page with feature navigation
+- `/upgrade-readiness` — editable readiness inputs → 0–100 score, risk findings, and an AI upgrade advisory (go/no-go, remediation backlog, sprint plan)
+- `/vendor-mocks` — call vendor mocks (fraud, document, payment, address) with happy-path and failure scenarios, and run JSON Schema contract tests
+- `/data-migration` — validate candidate migration records and generate an AI remediation plan with reconciliation checks
+
+### AI features
+
+The AI features are powered by Claude through the official `@anthropic-ai/sdk`
+(model `claude-opus-4-8` with adaptive thinking). Two server routes call the model:
+
+- `POST /api/ai/advisory` — scores readiness, then generates a steering advisory
+- `POST /api/ai/migration-remediation` — validates records, then generates a remediation plan
+
+Set `ANTHROPIC_API_KEY` (see `.env.example`) to enable them. **Without an API key
+the app gracefully falls back to deterministic summaries built from the rule
+engine**, so the prototype is always demoable. Optionally override the model with
+`ANTHROPIC_MODEL`.
+
+The original deterministic endpoints remain available:
+`POST /api/readiness/score`, `POST /api/contracts/run`,
+`POST /api/migration/validate`, and `POST /api/mocks/vendor/{vendor}`.

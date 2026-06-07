@@ -53,3 +53,53 @@ export type MigrationValidationIssue = {
   message: string;
   suggestedFix: string;
 };
+
+// AI advisor outputs -------------------------------------------------------
+
+export type GoNoGo = "GO" | "CONDITIONAL_GO" | "NO_GO";
+
+export type RemediationItem = {
+  title: string;
+  priority: "P0" | "P1" | "P2" | "P3";
+  rationale: string;
+  estimatedEffort: string;
+};
+
+export type SprintPlanItem = {
+  sprint: string;
+  focus: string;
+  items: string[];
+};
+
+export type AdvisoryKeyRisk = {
+  area: string;
+  risk: string;
+  businessImpact: string;
+};
+
+export type ReadinessAdvisory = {
+  aiGenerated: boolean;
+  model: string | null;
+  executiveSummary: string;
+  goNoGoRecommendation: GoNoGo;
+  confidence: "LOW" | "MEDIUM" | "HIGH";
+  keyRisks: AdvisoryKeyRisk[];
+  remediationBacklog: RemediationItem[];
+  sprintPlan: SprintPlanItem[];
+};
+
+export type MigrationFix = {
+  entityType: string;
+  issue: string;
+  recommendation: string;
+  priority: "HIGH" | "MEDIUM" | "LOW";
+};
+
+export type MigrationRemediation = {
+  aiGenerated: boolean;
+  model: string | null;
+  summary: string;
+  overallDataReadiness: "READY" | "NEEDS_WORK" | "NOT_READY";
+  prioritizedFixes: MigrationFix[];
+  reconciliationChecks: string[];
+};
