@@ -1,0 +1,41 @@
+[
+  {
+    "name": "Fraud request — valid payload",
+    "contract": "fraudRequest",
+    "expect": "PASS",
+    "payload": { "claimNumber": "CLM-100245", "lossDate": "2026-04-01", "claimAmount": 18500 }
+  },
+  {
+    "name": "Fraud request — missing required fields",
+    "contract": "fraudRequest",
+    "expect": "FAIL",
+    "note": "Missing required lossDate and claimAmount",
+    "payload": { "claimNumber": "CLM-100245" }
+  },
+  {
+    "name": "Payment request — valid payload",
+    "contract": "paymentRequest",
+    "expect": "PASS",
+    "payload": { "payeeId": "PAYEE-9931", "amount": 4200.5, "currency": "GBP" }
+  },
+  {
+    "name": "Payment request — negative amount and bad currency",
+    "contract": "paymentRequest",
+    "expect": "FAIL",
+    "note": "Negative amount and an unsupported currency enum value",
+    "payload": { "payeeId": "PAYEE-9931", "amount": -10, "currency": "YEN" }
+  },
+  {
+    "name": "Document request — valid payload",
+    "contract": "documentRequest",
+    "expect": "PASS",
+    "payload": { "documentType": "PolicySchedule", "entityReference": "POL-55012", "deliveryChannel": "EMAIL" }
+  },
+  {
+    "name": "Document request — missing reference and bad channel",
+    "contract": "documentRequest",
+    "expect": "FAIL",
+    "note": "Missing entityReference and an invalid deliveryChannel",
+    "payload": { "documentType": "PolicySchedule", "deliveryChannel": "FAX" }
+  }
+]

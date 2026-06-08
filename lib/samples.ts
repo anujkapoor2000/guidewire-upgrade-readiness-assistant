@@ -181,26 +181,34 @@ export const migrationPresets: MigrationPreset[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Contract test example payloads
+// Contract test example payloads (derived from the shared contract suite so
+// the UI buttons and the run-all suite use identical payloads)
 // ---------------------------------------------------------------------------
+
+import suiteCases from "./contractSuite.json";
+
+type SuiteCase = {
+  name: string;
+  contract: string;
+  expect: "PASS" | "FAIL";
+  note?: string;
+  payload: unknown;
+};
 
 export const contractExamples: Record<
   string,
   { valid: unknown; invalid: unknown; invalidNote: string }
-> = {
-  fraudRequest: {
-    valid: { claimNumber: "CLM-100245", lossDate: "2026-04-01", claimAmount: 18500 },
-    invalid: { claimNumber: "CLM-100245" },
-    invalidNote: "Missing required lossDate and claimAmount"
-  },
-  paymentRequest: {
-    valid: { payeeId: "PAYEE-9931", amount: 4200.5, currency: "GBP" },
-    invalid: { payeeId: "PAYEE-9931", amount: -10, currency: "YEN" },
-    invalidNote: "Negative amount and an unsupported currency enum value"
-  },
-  documentRequest: {
-    valid: { documentType: "PolicySchedule", entityReference: "POL-55012", deliveryChannel: "EMAIL" },
-    invalid: { documentType: "PolicySchedule", deliveryChannel: "FAX" },
-    invalidNote: "Missing entityReference and an invalid deliveryChannel"
+> = (() => {
+  const out: Record<string, { valid: unknown; invalid: unknown; invalidNote: string }> = {};
+  for (const c of suiteCases as SuiteCase[]) {
+    out[c.contract] ??= { valid: {}, invalid: {}, invalidNote: "" };
+    if (c.expect === "PASS") {
+      out[c.contract].valid = c.payload;
+    } else {
+      out[c.contract].invalid = c.payload;
+      out[c.contract].invalidNote = c.note ?? "Invalid payload";
+    }
   }
-};
+  return out;
+})();
+

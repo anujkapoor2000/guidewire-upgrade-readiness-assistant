@@ -1,46 +1,16 @@
-import Ajv from "ajv";
+import Ajv, { AnySchema } from "ajv";
+import schemas from "./contractSchemas.json";
 
 const ajv = new Ajv({ allErrors: true });
 
-export const contractSchemas = {
-  fraudRequest: {
-    type: "object",
-    required: ["claimNumber", "lossDate", "claimAmount"],
-    properties: {
-      claimNumber: { type: "string" },
-      lossDate: { type: "string" },
-      claimAmount: { type: "number", minimum: 0 },
-      policyNumber: { type: "string" }
-    },
-    additionalProperties: true
-  },
+// Single source of truth — shared with the CLI suite (scripts/run-contract-tests.js)
+// via lib/contractSchemas.json.
+export const contractSchemas = schemas;
 
-  paymentRequest: {
-    type: "object",
-    required: ["payeeId", "amount", "currency"],
-    properties: {
-      payeeId: { type: "string" },
-      amount: { type: "number", minimum: 0.01 },
-      currency: { type: "string", enum: ["GBP", "EUR", "USD"] },
-      paymentType: { type: "string" }
-    },
-    additionalProperties: true
-  },
+export type ContractName = keyof typeof contractSchemas;
 
-  documentRequest: {
-    type: "object",
-    required: ["documentType", "entityReference", "deliveryChannel"],
-    properties: {
-      documentType: { type: "string" },
-      entityReference: { type: "string" },
-      deliveryChannel: { type: "string", enum: ["EMAIL", "POST", "PORTAL"] }
-    },
-    additionalProperties: true
-  }
-} as const;
-
-export function validateContract(contractName: keyof typeof contractSchemas, payload: unknown) {
-  const schema = contractSchemas[contractName];
+export function validateContract(contractName: ContractName, payload: unknown) {
+  const schema = contractSchemas[contractName] as AnySchema;
   const validate = ajv.compile(schema);
   const valid = validate(payload);
 

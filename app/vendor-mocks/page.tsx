@@ -74,6 +74,10 @@ export default function VendorMocksPage() {
   const [contractResult, setContractResult] = useState<any>(null);
   const [contractLoading, setContractLoading] = useState(false);
 
+  // Contract suite state
+  const [suite, setSuite] = useState<any>(null);
+  const [suiteLoading, setSuiteLoading] = useState(false);
+
   function onVendorChange(v: string) {
     setVendor(v);
     setMockBody(JSON.stringify(vendorSamples[v] ?? {}, null, 2));
@@ -116,6 +120,19 @@ export default function VendorMocksPage() {
       );
     } finally {
       setMockLoading(false);
+    }
+  }
+
+  async function runSuite() {
+    setSuiteLoading(true);
+    setSuite(null);
+    try {
+      const res = await fetch("/api/contracts/suite");
+      setSuite(await res.json());
+    } catch {
+      setSuite({ error: "Failed to run contract suite" });
+    } finally {
+      setSuiteLoading(false);
     }
   }
 
@@ -311,6 +328,78 @@ export default function VendorMocksPage() {
               {JSON.stringify(contractResult, null, 2)}
             </pre>
           </>
+        ) : null}
+      </section>
+
+      <section className="card">
+        <h2>Contract suite</h2>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Run the whole contract suite at once — the same checks as{" "}
+          <code>npm run test:contracts</code>. Each case asserts that a sample
+          payload passes or fails its JSON Schema contract as expected.
+        </p>
+        <div className="btn-row">
+          <button className="btn btn-accent" onClick={runSuite} disabled={suiteLoading}>
+            {suiteLoading ? <span className="spinner" /> : null}
+            {suiteLoading ? "Running…" : "Run all contracts"}
+          </button>
+        </div>
+
+        {suite && !suite.error ? (
+          <>
+            <h3>
+              Summary{" "}
+              <span
+                className={`label label-${suite.failed === 0 ? "pass" : "fail"}`}
+              >
+                {suite.passed}/{suite.total} passed
+              </span>
+            </h3>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Result</th>
+                    <th>Test case</th>
+                    <th>Contract</th>
+                    <th>Expected</th>
+                    <th>Actual</th>
+                    <th>Errors</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {suite.results.map((r: any, i: number) => (
+                    <tr key={i}>
+                      <td>
+                        <span
+                          className={`label label-${r.passed ? "pass" : "fail"}`}
+                        >
+                          {r.passed ? "✓ PASS" : "✗ FAIL"}
+                        </span>
+                      </td>
+                      <td>
+                        {r.name}
+                        {r.note ? (
+                          <div className="muted" style={{ fontSize: 12 }}>
+                            {r.note}
+                          </div>
+                        ) : null}
+                      </td>
+                      <td>
+                        <code>{r.contract}</code>
+                      </td>
+                      <td>{r.expected}</td>
+                      <td>{r.actual}</td>
+                      <td>{r.errorCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : null}
+        {suite && suite.error ? (
+          <div className="banner banner-warning">{suite.error}</div>
         ) : null}
       </section>
     </main>
